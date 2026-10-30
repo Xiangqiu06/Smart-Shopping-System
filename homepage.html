@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>易购商城 - 登录</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:"Microsoft YaHei",Arial,sans-serif;
+    background:#f5f6fa;
+    color:#333;
+}
+
+/* 顶部 */
+.topbar{
+    height:70px;
+    background:#fff;
+    border-bottom:1px solid #eee;
+    display:flex;
+    align-items:center;
+    padding:0 7%;
+    justify-content:space-between;
+}
+
+.logo{
+    font-size:25px;
+    font-weight:bold;
+    color:#ff4d6d;
+    text-decoration:none;
+}
+
+.nav{
+    display:flex;
+    gap:30px;
+}
+
+.nav a{
+    color:#555;
+    text-decoration:none;
+    font-size:15px;
+}
+
+.nav a:hover{
+    color:#ff4d6d;
+}
+
+/* 登录区域 */
+.login-section{
+    min-height:calc(100vh - 70px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px 20px;
+}
+
+.login-box{
+    width:420px;
+    max-width:100%;
+    background:#fff;
+    border-radius:15px;
+    padding:40px;
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+.login-box h1{
+    text-align:center;
+    font-size:28px;
+    margin-bottom:10px;
+    color:#222;
+}
+
+.login-box .desc{
+    text-align:center;
+    color:#999;
+    font-size:14px;
+    margin-bottom:30px;
+}
+
+/* 输入框 */
+.input-group{
+    margin-bottom:20px;
+}
+
+.input-group label{
+    display:block;
+    font-size:14px;
+    margin-bottom:8px;
+    color:#555;
+}
+
+.input-group input{
+    width:100%;
+    height:45px;
+    border:1px solid #ddd;
+    border-radius:7px;
+    padding:0 14px;
+    font-size:14px;
+    outline:none;
+    transition:.2s;
+}
+
+.input-group input:focus{
+    border-color:#ff4d6d;
+    box-shadow:0 0 0 2px rgba(255,77,109,.1);
+}
+
+/* 登录按钮 */
+.login-btn{
+    width:100%;
+    height:45px;
+    border:none;
+    border-radius:7px;
+    background:#ff4d6d;
+    color:#fff;
+    font-size:15px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.login-btn:hover{
+    background:#e83e5d;
+}
+
+.login-btn:disabled{
+    background:#ff9aad;
+    cursor:not-allowed;
+}
+
+/* 错误提示 */
+.error-msg{
+    display:none;
+    text-align:center;
+    color:#ff4d6d;
+    font-size:14px;
+    margin-top:15px;
+}
+
+/* 注册 */
+.register{
+    text-align:center;
+    margin-top:22px;
+    font-size:14px;
+    color:#999;
+}
+
+.register a{
+    color:#ff4d6d;
+    text-decoration:none;
+}
+
+.register a:hover{
+    text-decoration:underline;
+}
+
+footer{
+    text-align:center;
+    color:#aaa;
+    font-size:13px;
+    padding:20px;
+}
+</style>
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <a href="/" class="logo">♥ 易购商城</a>
+
+    <nav class="nav">
+        <a href="/">首页</a>
+        <a href="/register.html">注册</a>
+    </nav>
+
+</header>
+
+
+<section class="login-section">
+
+    <div class="login-box">
+
+        <h1>欢迎登录</h1>
+
+        <p class="desc">
+            登录易购商城，开启购物之旅
+        </p>
+
+        <form id="loginForm">
+
+            <div class="input-group">
+                <label>用户名</label>
+                <input
+                    type="text"
+                    id="username"
+                    placeholder="请输入用户名"
+                    autocomplete="username"
+                    required
+                >
+            </div>
+
+            <div class="input-group">
+                <label>密码</label>
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="请输入密码"
+                    autocomplete="current-password"
+                    required
+                >
+            </div>
+
+            <button type="submit" class="login-btn" id="loginBtn">
+                登 录
+            </button>
+
+            <div class="error-msg" id="errorMsg">
+                用户名或密码错误，请重新输入！
+            </div>
+
+        </form>
+
+        <div class="register">
+            还没有账号？
+            <a href="/register.html">立即注册</a>
+        </div>
+
+    </div>
+
+</section>
+
+
+<footer>
+    © 2026 易购商城 · 让购物变得简单
+</footer>
+
+
+<script>
+
+document.getElementById("loginForm").addEventListener("submit", function(e)
+{
+    /* 阻止浏览器直接跳转 */
+    e.preventDefault();
+
+    var username = document.getElementById("username").value.trim();
+    var password = document.getElementById("password").value;
+
+    var loginBtn = document.getElementById("loginBtn");
+    var errorMsg = document.getElementById("errorMsg");
+
+    /* 清除之前的错误提示 */
+    errorMsg.style.display = "none";
+
+    if(username === "" || password === "")
+    {
+        errorMsg.innerText = "用户名和密码不能为空！";
+        errorMsg.style.display = "block";
+        return;
+    }
+
+    /* 登录按钮状态 */
+    loginBtn.disabled = true;
+    loginBtn.innerText = "登录中...";
+
+    /* 发送登录请求 */
+    fetch("/login", {
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/x-www-form-urlencoded"
+        },
+
+        body:
+            "username=" + encodeURIComponent(username) +
+            "&password=" + encodeURIComponent(password)
+    })
+
+    .then(function(response)
+    {
+        return response.text();
+    })
+
+    .then(function(data)
+    {
+        /*
+         * 后端登录成功以后返回 search.html
+         */
+        if(data.indexOf("商品搜索") !== -1)
+        {
+            document.open();
+            document.write(data);
+            document.close();
+        }
+        else
+        {
+            /*
+             * 登录失败
+             */
+            errorMsg.innerText =
+                "用户名或密码错误，请重新输入！";
+
+            errorMsg.style.display = "block";
+
+            /* 清空密码 */
+            document.getElementById("password").value = "";
+
+            /* 恢复登录按钮 */
+            loginBtn.disabled = false;
+            loginBtn.innerText = "登 录";
+
+            document.getElementById("password").focus();
+        }
+    })
+
+    .catch(function(error)
+    {
+        console.log(error);
+
+        errorMsg.innerText =
+            "登录失败，请检查服务器是否正常运行！";
+
+        errorMsg.style.display = "block";
+
+        loginBtn.disabled = false;
+        loginBtn.innerText = "登 录";
+    });
+
+});
+
+</script>
+
+</body>
+</html>

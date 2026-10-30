@@ -1,0 +1,15 @@
+# 编译产物
+*.o
+a.out
+*.exe
+
+# 运行时数据库（含用户数据，需自行放入项目根目录）
+*.db
+*.db-journal
+*.db-wal
+
+# 编辑器 / 系统文件
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

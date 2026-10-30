@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品详情</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, "Microsoft YaHei", sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        .header {
+            height: 60px;
+            background: #333;
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 0 40px;
+        }
+        .header h1 { margin: 0; font-size: 22px; font-weight: normal; }
+        .container { width: 1100px; max-width: 95%; margin: 30px auto; }
+        .detail-box {
+            background: white;
+            padding: 30px;
+            display: flex;
+            gap: 40px;
+            min-height: 500px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+        }
+        .image-box {
+            width: 420px;
+            height: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #eee;
+            flex-shrink: 0;
+        }
+        .image-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .info { flex: 1; padding: 10px 0; }
+        .goods-name { font-size: 28px; margin: 0 0 20px; color: #222; }
+        .brief {
+            font-size: 16px;
+            color: #777;
+            line-height: 1.8;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .price { margin-top: 25px; color: #e4393c; font-size: 32px; font-weight: bold; }
+        .price::before { content: "¥"; font-size: 22px; }
+        .stock { margin-top: 20px; font-size: 16px; }
+        .extra { margin-top: 12px; color: #666; line-height: 1.8; }
+        .desc-box {
+            background: white;
+            margin-top: 20px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+        }
+        .desc-title {
+            font-size: 22px;
+            font-weight: bold;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+        .desc {
+            line-height: 2;
+            font-size: 16px;
+            color: #555;
+            word-break: break-word;
+        }
+        .desc p { margin: 0 0 16px; }
+        .desc strong { font-weight: bold; }
+        .desc img { max-width: 100%; height: auto; }
+        .back-btn {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 10px 25px;
+            background: #333;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .message {
+            background: white;
+            padding: 50px;
+            text-align: center;
+            font-size: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+        }
+        .message .detail {
+            font-size: 14px;
+            color: #777;
+            margin-top: 15px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>商品详情</h1>
+</div>
+
+<div class="container">
+    <div id="loading" class="message">正在加载商品信息...</div>
+
+    <div id="detail" style="display:none;">
+        <div class="detail-box">
+            <div class="image-box">
+                <img id="goodsImage" src="" alt="商品图片">
+            </div>
+
+            <div class="info">
+                <h2 id="goodsName" class="goods-name"></h2>
+                <div id="goodsBrief" class="brief"></div>
+                <div id="goodsPrice" class="price"></div>
+
+                <div class="stock">
+                    库存：<span id="goodsStock"></span>
+                </div>
+
+                <div class="extra">
+                    商品编号：<span id="goodsSn"></span><br>
+                    市场价：<span id="marketPrice"></span><br>
+                    重量：<span id="goodsWeight"></span>
+                </div>
+
+                <a href="javascript:history.back();" class="back-btn">返回</a>
+            </div>
+        </div>
+
+        <div class="desc-box">
+            <div class="desc-title">商品介绍</div>
+            <div id="goodsDesc" class="desc"></div>
+        </div>
+    </div>
+
+    <div id="error" class="message" style="display:none;">
+        商品信息加载失败！
+        <br><br>
+        <span class="detail" id="errorDetail">
+            请检查商品ID、服务器是否正常运行以及数据库中是否存在该商品。
+        </span>
+        <br>
+        <a href="javascript:history.back();" class="back-btn">返回</a>
+    </div>
+</div>
+
+<script>
+    function getGoodsId() {
+        var params = new URLSearchParams(window.location.search);
+        return params.get("id");
+    }
+
+    function getImagePath(path) {
+        if (!path) return "";
+        if (path.indexOf("http://") === 0 ||
+            path.indexOf("https://") === 0 ||
+            path.indexOf("/") === 0) {
+            return path;
+        }
+        return "/" + path;
+    }
+
+    function loadGoodsDetail() {
+        var goodsId = getGoodsId();
+
+        if (!goodsId) {
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("error").style.display = "block";
+            document.getElementById("errorDetail").textContent = "缺少商品ID参数";
+            return;
+        }
+
+        fetch("/goods_detail?id=" + encodeURIComponent(goodsId))
+            .then(function(response) {
+                /* 关键修复：先读取文本，再尝试解析 JSON */
+                return response.text().then(function(text) {
+                    try {
+                        var data = JSON.parse(text);
+                        /* 即使 HTTP 状态是 404，只要 body 是 JSON，就解析错误信息 */
+                        if (!response.ok) {
+                            throw new Error(data.error || "服务器返回错误：" + response.status);
+                        }
+                        return data;
+                    } catch (e) {
+                        if (e instanceof SyntaxError) {
+                            throw new Error("服务器返回了非JSON数据，可能商品不存在或服务器异常");
+                        }
+                        throw e;
+                    }
+                });
+            })
+            .then(function(goods) {
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("detail").style.display = "block";
+
+                document.getElementById("goodsName").textContent =
+                    goods.name || "暂无商品名称";
+
+                document.getElementById("goodsBrief").textContent =
+                    goods.brief || "暂无商品简介";
+
+                document.getElementById("goodsPrice").textContent =
+                    goods.price || "0.00";
+
+                document.getElementById("goodsStock").textContent =
+                    goods.stock || "0";
+
+                document.getElementById("goodsSn").textContent =
+                    goods.goods_sn || "暂无";
+
+                document.getElementById("marketPrice").textContent =
+                    goods.market_price || "0.00";
+
+                document.getElementById("goodsWeight").textContent =
+                    goods.goods_weight || "0";
+
+                document.getElementById("goodsDesc").innerHTML =
+                    goods.desc || "暂无商品介绍";
+
+                var image = document.getElementById("goodsImage");
+
+                if (goods.image) {
+                    image.src = getImagePath(goods.image);
+                    image.onerror = function() {
+                        image.style.display = "none";
+                    };
+                } else {
+                    image.style.display = "none";
+                }
+            })
+            .catch(function(error) {
+                console.log("加载商品详情失败：", error);
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("error").style.display = "block";
+                document.getElementById("errorDetail").textContent = error.message;
+            });
+    }
+
+    loadGoodsDetail();
+</script>
+
+</body>
+</html>
